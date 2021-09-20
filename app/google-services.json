@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "510621575075",
+    "project_id": "project-4-kotlin-course",
+    "storage_bucket": "project-4-kotlin-course.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510621575075:android:cda1bbb544d3e60d991c16",
+        "android_client_info": {
+          "package_name": "com.udacity.project4"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "510621575075-2dla9r99h4sb2rq2te146298q01mp61t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.udacity.project4",
+            "certificate_hash": "2dfc724a459a8003bce7b4a9406adcb09dc46264"
+          }
+        },
+        {
+          "client_id": "510621575075-5sjvr88soc1j7s49h0cqu0dj5744l0lb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCC_PqmZb4oD-jVxr9tHI8-E392s7Q5Jn4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "510621575075-5sjvr88soc1j7s49h0cqu0dj5744l0lb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
