@@ -28,20 +28,22 @@ import com.udacity.project4.util.monitorFragment
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import org.mockito.AdditionalMatchers.not
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -51,7 +53,6 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
     private val dataBindingIdlingResource = DataBindingIdlingResource()
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
-    private lateinit var viewModel: ReminderListFragmentTest
 
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
@@ -88,10 +89,6 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
         runBlocking {
             repository.deleteAllReminders()
         }
-    }
-
-    private operator fun invoke(function: () -> RemindersListViewModel) {
-
     }
 
     @Before

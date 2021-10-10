@@ -79,12 +79,10 @@ class SaveReminderFragment : BaseFragment() {
             //            Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
+            checkPermissionsAndStartGeofencing()
         }
 
         binding.saveReminder.setOnClickListener {
-            if (_viewModel.selectedPOI.value === null) {
-                _viewModel.showErrorMessage.value = (getString(R.string.select_poi))
-            } else {
                 val title = _viewModel.reminderTitle.value
                 val description = _viewModel.reminderDescription.value
                 val location = _viewModel.reminderSelectedLocationStr.value
@@ -95,18 +93,17 @@ class SaveReminderFragment : BaseFragment() {
                     title, description, location, latitude, longitude
                 )
 
+            if (_viewModel.selectedPOI.value === null) {
+                addGeofence(null)
+                _viewModel.showErrorMessage.value = (getString(R.string.select_poi))
+            } else {
                 addGeofence(reminderData.id)
-                _viewModel.validateAndSaveReminder(reminderData)
-//            TODO: use the user entered reminder details to:
-//             1) add a geofencing request
-//             2) save the reminder to the local db
             }
+                _viewModel.validateAndSaveReminder(reminderData)
+//
+                checkPermissionsAndStartGeofencing()
+            //}
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        checkPermissionsAndStartGeofencing()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -250,7 +247,7 @@ class SaveReminderFragment : BaseFragment() {
                 .setCircularRegion(
                     _viewModel.latitude.value!!, _viewModel.longitude.value!!, 50f
                 )
-                .setExpirationDuration(java.util.concurrent.TimeUnit.HOURS.toMillis(1) * 24 * 7)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                 .build()
 

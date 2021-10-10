@@ -37,6 +37,7 @@ class RemindersActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         val fragments = supportFragmentManager.fragments
         for (fragment in fragments) {
             fragment.onRequestPermissionsResult(requestCode, permissions, grantResults)

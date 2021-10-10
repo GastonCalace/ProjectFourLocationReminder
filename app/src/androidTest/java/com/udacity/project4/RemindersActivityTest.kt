@@ -1,12 +1,16 @@
 package com.udacity.project4
 
+import android.app.Activity
 import android.app.Application
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.action.ViewActions
+import androidx.test.espresso.action.ViewActions.*
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -20,6 +24,8 @@ import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -30,15 +36,14 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import java.util.regex.Pattern.matches
+
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-
+//END TO END test to black box test the app
 class RemindersActivityTest :
     AutoCloseKoinTest() {// Extended Koin Test - embed autoclose @after method to close Koin after every test
 
-    private val dataBindingIdlingResource = DataBindingIdlingResource()
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
 
@@ -79,6 +84,12 @@ class RemindersActivityTest :
         }
     }
 
+    // An idling resource that waits for Data Binding to have no pending bindings.
+    private val dataBindingIdlingResource = DataBindingIdlingResource()
+    /**
+     * Idling resources tell Espresso that the app is idle or busy. This is needed when operations
+     * are not scheduled in the main Looper (for example when executed on a different thread).
+     */
     @Before
     fun registerIdlingResource() {
         IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
@@ -94,24 +105,98 @@ class RemindersActivityTest :
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
     }
 
+    // End to End testing to the app
     @Test
-    fun addReminder_withoutPOI() {
-        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
-        dataBindingIdlingResource.monitorActivity(activityScenario)
+    fun addReminder_ShowSnackbarWhenNoTitle() = runBlocking {
+        // Set initial state.
 
-        // Given I click add reminder FAB
+        // Start up Reminders screen.
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario) // LOOK HERE
+
+        // Espresso code will go here.
+        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
         onView(withId(R.id.addReminderFAB)).perform(click())
 
-        // When I set all mandatory information and click save
-        onView(withId(R.id.reminderTitle)).perform(replaceText("Reminder title"))
-        onView(withId(R.id.reminderDescription)).perform(replaceText("Reminder description"))
+        onView(withId(R.id.reminderDescription)).perform(replaceText("new description"))
         onView(withId(R.id.selectLocation)).perform(click())
 
-        // And I confirm a save reminder
-        onView(withId(R.id.save_button)).perform(click())
-        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withId(R.id.map)).perform(longClick())
 
+        onView(withId(R.id.save_button)).perform(click())
+
+        // the following checks that a snackbar message is shown when saving without a title
+        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withId(com.google.android.material.R.id.snackbar_text)).check(matches(withText(R.string.err_enter_title)))
+
+        // Make sure the activity is closed before resetting the db:
         activityScenario.close()
     }
 
+    // End to End testing to the app
+    @Test
+    fun addReminder_ShowSnackbarWhenNoLocation() = runBlocking {
+        // Set initial state.
+
+        // Start up Reminders screen.
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario) // LOOK HERE
+
+        // Espresso code will go here.
+        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        // the following checks that a snackbar message is shown when saving without a location
+        onView(withId(R.id.reminderTitle)).perform(replaceText("new title"))
+        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withId(com.google.android.material.R.id.snackbar_text)).check(matches(withText(R.string.err_select_location)))
+
+        // Make sure the activity is closed before resetting the db:
+        activityScenario.close()
+    }
+
+    // End to End testing to the app
+    @Test
+    fun addReminder_Successful() = runBlocking {
+        // Set initial state.
+
+        // Start up Reminders screen.
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario) // LOOK HERE
+
+        // Espresso code will go here.
+        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        onView(withId(R.id.reminderTitle)).perform(replaceText("new title"))
+        onView(withId(R.id.reminderDescription)).perform(replaceText("new description"))
+        onView(withId(R.id.selectLocation)).perform(click())
+
+        onView(withId(R.id.map)).perform(longClick())
+
+        onView(withId(R.id.save_button)).perform(click())
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        Thread.sleep(1000)
+        // the following checks that a TOAST message is shown
+        onView(withText(R.string.reminder_saved)).inRoot(withDecorView(not(`is`(getActivity(activityScenario)!!.window.decorView))))
+            .check( matches( isDisplayed() ) )
+
+        Thread.sleep(2000)
+
+        // There is a post that I think may be relevant: https://medium.com/android-news/espresso-ui-test-for-data-binding-dbe988d97340
+        onView(withId(R.id.noDataTextView)).check(matches(not(isDisplayed())))
+
+        // Make sure the activity is closed before resetting the db:
+        activityScenario.close()
+    }
+
+    // get activity context
+    private fun getActivity(activityScenario: ActivityScenario<RemindersActivity>): Activity? {
+        var activity: Activity? = null
+        activityScenario.onActivity {
+            activity = it
+        }
+        return activity
+    }
 }

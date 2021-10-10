@@ -3,6 +3,7 @@ package com.udacity.project4.locationreminders.data.local
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 import kotlinx.coroutines.*
 
 /**
@@ -36,7 +37,7 @@ class RemindersLocalRepository(
      */
     override suspend fun saveReminder(reminder: ReminderDTO) =
         withContext(ioDispatcher) {
-            remindersDao.saveReminder(reminder)
+            wrapEspressoIdlingResource { remindersDao.saveReminder(reminder) }
         }
 
     /**
