@@ -44,9 +44,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     companion object {
         private val TAG = SelectLocationFragment::class.java.simpleName
         private val REQUEST_LOCATION_PERMISSION = 1
-        private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
         private const val LOCATION_PERMISSION_INDEX = 0
-        private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
     }
 
     //Use Koin to get the view model of the SaveReminder
@@ -54,6 +52,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -88,7 +87,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        enableMyLocation()
+        if (isPermissionGranted()){ enableMyLocation() }
         setMapStyle(map)
         setPoiClick(map)
         setMapLongClick(map)
@@ -152,7 +151,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun locationSelected(poi: PointOfInterest) {
         _viewModel.selectedPOI.value = poi
-        //_viewModel.reminderSelectedLocationStr.value = poi.name
         _viewModel.latitude.value = poi.latLng.latitude
         _viewModel.longitude.value = poi.latLng.longitude
     }
@@ -197,8 +195,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 arrayOf(ACCESS_FINE_LOCATION) ,
                 REQUEST_LOCATION_PERMISSION
             )
-            if (isPermissionGranted())
-                zoomInMyPosition()
         }
 
     }
@@ -217,31 +213,30 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<String>,
-            grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
     ) {
         Log.d(TAG, "onRequestPermissionResult")
 
         if (
-                grantResults.isEmpty() ||
-                grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-                (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-                        grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                        PackageManager.PERMISSION_DENIED))
+            grantResults.isEmpty() ||
+            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED)
         {
             Snackbar.make(
-                    binding.mapConstraint,
-                    R.string.permission_denied_explanation,
-                    Snackbar.LENGTH_INDEFINITE
+                binding.mapConstraint,
+                R.string.permission_denied_explanation,
+                Snackbar.LENGTH_INDEFINITE
             )
-                    .setAction(R.string.settings) {
-                        startActivity(Intent().apply {
-                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        })
-                    }.show()
+                .setAction(R.string.settings) {
+                    startActivity(Intent().apply {
+                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
+                }.show()
+        } else {
+            enableMyLocation()
         }
     }
 
