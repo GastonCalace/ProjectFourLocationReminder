@@ -44,7 +44,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     companion object {
         private val TAG = SelectLocationFragment::class.java.simpleName
         private val REQUEST_LOCATION_PERMISSION = 1
-        private const val LOCATION_PERMISSION_INDEX = 0
     }
 
     //Use Koin to get the view model of the SaveReminder
@@ -217,17 +216,25 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Log.d(TAG, "onRequestPermissionResult")
 
-        if (
-            grantResults.isEmpty() ||
-            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED)
-        {
-            Snackbar.make(
+        if (grantResults.isEmpty() ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED ||
+            (requestCode == REQUEST_LOCATION_PERMISSION && grantResults[0] == PackageManager.PERMISSION_DENIED)) {
+                createSnackBar()
+        } else {
+            enableMyLocation()
+        }
+    }
+
+
+    private fun createSnackBar() {
+        Snackbar.make(
                 binding.mapConstraint,
                 R.string.permission_denied_explanation,
-                Snackbar.LENGTH_INDEFINITE
-            )
+                Snackbar.LENGTH_LONG
+        )
                 .setAction(R.string.settings) {
                     startActivity(Intent().apply {
                         action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
@@ -235,9 +242,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     })
                 }.show()
-        } else {
-            enableMyLocation()
-        }
     }
 
 }
